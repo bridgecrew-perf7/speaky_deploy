@@ -35,7 +35,7 @@ librosa==0.8.1
 llvmlite==0.36.0
 Markdown==3.3.4
 MarkupSafe==2.0.1
-matplotlib==3.4.2
+matplotlib==3.3.4
 moviepy==1.0.3
 numba==0.53.1
 numpy==1.19.5
