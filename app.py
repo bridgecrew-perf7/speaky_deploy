@@ -11,10 +11,11 @@ from pydub import AudioSegment
 import librosa
 import requests
 import moviepy.editor as mp
-import python_speech_features
+import sklearn.preprocessing as sp
 
 from imutils import face_utils
-import cv2, dlib
+import cv2
+import dlib
 
 app = Flask(__name__)
 
@@ -63,13 +64,13 @@ def calc_score(dis_count, blink_count, gaze_count):
     gaze_score = 0
     blink_score = 0
 
-    if dis_count < 10:
+    if dis_count < 100:
         dis_score = 500
-    elif dis_count < 20 & dis_count > 10:
+    elif dis_count < 150 & dis_count > 100:
         dis_score = 375
-    elif dis_count < 30 & dis_count > 20:
+    elif dis_count < 200 & dis_count > 150:
         dis_score = 250
-    elif dis_count < 50 & dis_count > 40:
+    elif dis_count < 250 & dis_count > 200:
         dis_score = 125
     else:
         dis_score = 0
@@ -229,22 +230,20 @@ def video_process(path_video):
     return gaze_count, blink_count
 
 
+def normalize(audio, axis=0):
+    return sp.minmax_scale(audio, axis=axis)
+
+
 # Disfluency
 def calc_mfcc(path):
     signal, fs = librosa.load(path, sr=8000)
 
-    mfccs = python_speech_features.base.mfcc(signal,
-                                             samplerate=fs,
-                                             winlen=0.256,
-                                             winstep=0.050,
-                                             numcep=16,
-                                             nfilt=26,
-                                             nfft=2048,
-                                             preemph=0.0,
-                                             ceplifter=0,
-                                             appendEnergy=False,
-                                             winfunc=np.hanning)
-    return mfccs.transpose()
+    signal = normalize(signal)
+
+    mfccs = librosa.feature.mfcc(y=signal, sr=fs, n_fft=2048, n_mfcc=16, fmin=0, fmax=int(fs / 2),
+                                 n_mels=26, hop_length=520, htk=False)
+
+    return mfccs
 
 
 def slicesound(path, st, sp):
@@ -261,14 +260,14 @@ def audiopredict(audio):
     st = 0
     sp = 1000
     dis_count = 0
-    for i in range(60):
+    for i in range(300):
         mfcc = slicesound(audio, st, sp)
         if mfcc.shape[1] < 16:
             x = 16 - mfcc.shape[1]
             zero = np.zeros((16, x))
             mfcc = np.append(mfcc, zero)
-        st += 500
-        sp += 500
+        st += 100
+        sp += 100
         mfcc = mfcc.reshape(1, 16, 16, 1)
         det = model_disfluency.predict(mfcc)
         if det == 1.0:
@@ -279,7 +278,7 @@ def audiopredict(audio):
 def audioprocess(path):
     sound = mp.VideoFileClip(path)
     sound_path = parent_path + "/sound.wav"
-    sound.audio.write_audiofile(filename=sound_path, fps=16000, nbytes=2, buffersize=2000, codec='pcm_s32le',
+    sound.audio.write_audiofile(filename=sound_path, fps=8000, nbytes=2, buffersize=2000, codec='pcm_s32le',
                                 ffmpeg_params=["-ac", "1"])
     sound = None
     time.sleep(2)
