@@ -110,7 +110,8 @@ def api():
     uid = request.args.get('uid')
 
     url = filepath + "&token=" + token
-    url = url.replace('video/', 'video%2F').replace('/video-', '%2Fvideo-')
+    url = url.replace('%3A', ':').replace('%2F', '/').replace('%3D', '=').replace('%3F', '?').replace('%26', '&')
+    url = url.replace('video%252F', 'video%2F').replace('%252Fvideo-', '%2Fvideo-')
 
     global parent_path
     parent_path = "data/" + uid
