@@ -240,8 +240,8 @@ def calc_mfcc(path):
 
     signal = normalize(signal)
 
-    mfccs = librosa.feature.mfcc(y=signal, sr=fs, n_fft=2048, n_mfcc=16, fmin=0, fmax=int(fs / 2),
-                                 n_mels=26, hop_length=520, htk=False)
+    mfccs = librosa.feature.mfcc(y=signal, sr=fs, n_fft=2048, n_mfcc=32, fmin=0, fmax=int(fs / 2),
+                                 n_mels=32, hop_length=255, htk=False)
 
     return mfccs
 
@@ -262,13 +262,13 @@ def audiopredict(audio):
     dis_count = 0
     for i in range(300):
         mfcc = slicesound(audio, st, sp)
-        if mfcc.shape[1] < 16:
-            x = 16 - mfcc.shape[1]
-            zero = np.zeros((16, x))
+        if mfcc.shape[1] < 32:
+            x = 32 - mfcc.shape[1]
+            zero = np.zeros((32, x))
             mfcc = np.append(mfcc, zero)
         st += 100
         sp += 100
-        mfcc = mfcc.reshape(1, 16, 16, 1)
+        mfcc = mfcc.reshape(1, 32, 32, 1)
         det = model_disfluency.predict(mfcc)
         if det == 1.0:
             dis_count += 1
