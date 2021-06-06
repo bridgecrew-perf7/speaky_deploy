@@ -98,7 +98,6 @@ def calc_score(dis_count, blink_count, gaze_count):
         gaze_score = 0
 
     score = ((33 / 100) * dis_score) + ((33 / 100) * blink_score) + ((33 / 100) * gaze_score)
-    print(dis_count, gaze_count, blink_count, score)
 
     return score
 
@@ -270,7 +269,7 @@ def audiopredict(audio):
         sp += 100
         mfcc = mfcc.reshape(1, 32, 32, 1)
         det = model_disfluency.predict(mfcc)
-        if det == 1.0:
+        if det >= 0.9:
             dis_count += 1
     return dis_count
 
