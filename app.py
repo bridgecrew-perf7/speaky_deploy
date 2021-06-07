@@ -64,13 +64,13 @@ def calc_score(dis_count, blink_count, gaze_count):
     gaze_score = 0
     blink_score = 0
 
-    if dis_count < 100:
+    if dis_count < 5:
         dis_score = 500
-    elif dis_count < 150 & dis_count > 100:
+    elif dis_count < 10 & dis_count > 5:
         dis_score = 375
-    elif dis_count < 200 & dis_count > 150:
+    elif dis_count < 15 & dis_count > 10:
         dis_score = 250
-    elif dis_count < 250 & dis_count > 200:
+    elif dis_count < 20 & dis_count > 15:
         dis_score = 125
     else:
         dis_score = 0
@@ -92,7 +92,7 @@ def calc_score(dis_count, blink_count, gaze_count):
         gaze_score = 375
     elif gaze_count < 30 & gaze_count > 20:
         gaze_score = 250
-    elif gaze_count < 50 & gaze_count > 40:
+    elif gaze_count < 40 & gaze_count > 30:
         gaze_score = 125
     else:
         gaze_score = 0
@@ -258,6 +258,7 @@ def audiopredict(audio):
     st = 0
     sp = 1000
     dis_count = 0
+    dis_detect = 0
     for i in range(300):
         mfcc = slicesound(audio, st, sp)
         if mfcc.shape[1] < 32:
@@ -269,7 +270,11 @@ def audiopredict(audio):
         mfcc = mfcc.reshape(1, 32, 32, 1)
         det = model_disfluency.predict(mfcc)
         if det >= 0.9:
-            dis_count += 1
+            dis_detect = 1
+        else :
+            if dis_detect == 1:
+                dis_count += 1
+            dis_detect = 0
     return dis_count
 
 
